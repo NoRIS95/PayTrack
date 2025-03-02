@@ -24,4 +24,15 @@ class Wallet(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="wallet")
-    
+    payments = relationship("Payment", back_populates="wallet")
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    wallet_id = Column(Integer, ForeignKey("wallets.id"))
+    amount = Column(Float)
+    transaction_id = Column(Integer, unique=True, nullable=False)
+
+    wallet = relationship("Wallet", back_populates="payments")
