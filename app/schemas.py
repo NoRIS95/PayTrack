@@ -1,22 +1,31 @@
 from pydantic import BaseModel
-
+from typing import List
 
 class UserBase(BaseModel):
     login: str
     full_name: str
     email: str
 
-class User(UserBase):
-    id: int
-
-class Administrator(UserBase):
-    id: int
-    role: str = "admin"
+class UserCreate(UserBase):
+    login: str
+    full_name: str
+    email: str
+    role: str = "user" 
 
 class Wallet(BaseModel):
     id: int
-    user_id: int
+    owner_id: int
     balance: float
+
+    class Config:
+        from_attributes = True
+
+class User(UserBase):
+    id: int
+    wallets: List[Wallet] = []
+
+    class Config:
+        from_attributes = True
 
 class Payment(BaseModel):
     id: int

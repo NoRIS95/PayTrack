@@ -13,7 +13,7 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     role = Column(String, default="user")
 
-    wallet = relationship("Wallet", back_populates="owner", uselist=True)
+    wallets = relationship("Wallet", back_populates="owner")
     
 
 class Wallet(Base):
@@ -23,7 +23,7 @@ class Wallet(Base):
     balance = Column(Float, default=0.0)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
-    owner = relationship("User", back_populates="wallet")
+    owner = relationship("User", back_populates="wallets")
     payments = relationship("Payment", back_populates="wallet")
 
 class Payment(Base):
@@ -33,6 +33,6 @@ class Payment(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     wallet_id = Column(Integer, ForeignKey("wallets.id"))
     amount = Column(Float)
-    transaction_id = Column(Integer, unique=True, nullable=False)
+    transaction_id = Column(String, unique=True, nullable=False)
 
     wallet = relationship("Wallet", back_populates="payments")
