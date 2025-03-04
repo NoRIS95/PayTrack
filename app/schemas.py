@@ -37,6 +37,6 @@ class Payment(BaseModel):
 class PaymentWebhook(BaseModel):
     transaction_id: str
     user_id: int
-    wallet_id: int
+    account_id: int
     amount: float
     signature: str
