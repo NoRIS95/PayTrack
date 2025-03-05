@@ -10,10 +10,13 @@ router = APIRouter()
 
 @router.post("/webhook/payment")
 async def process_payment_webhook(payment: PaymentWebhook, db: AsyncSession = Depends(get_db)):
+    print(f"account_id: {payment.account_id}, amount: {payment.amount}, transaction_id: {payment.transaction_id}, user_id: {payment.user_id}")
+    print(f"SECRET_KEY: {SECRET_KEY}")
     expected_signature = hashlib.sha256(
-        f"{payment.account_id}{payment.amount}{payment.transaction_id}{payment.user_id}{SECRET_KEY}".encode()
+        f"{payment.account_id}{f'{payment.amount:.2f}'}{payment.transaction_id}{payment.user_id}{SECRET_KEY}".encode()
     ).hexdigest()
-
+    print(f"expected signature: {expected_signature}" )
+    print(f"payment signature: {payment.signature}" )
     if expected_signature != payment.signature:
         raise HTTPException(status_code=400, detail="Ошибка в webhook подписи")
 
