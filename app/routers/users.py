@@ -3,11 +3,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.database import get_db
 from app.models import User, Wallet, Payment
-from app.schemas import UserCreate
+from app.schemas import UserCreate, UserLogin
 
 
 router = APIRouter()
 
+@router.post("/users/login")
+async def user_login(user_login: UserLogin, db: AsyncSession = Depends(get_db)):
+    db_user = await db.execute(
+        select(User).filter(User.email == user_login.email)
+    )
+    db_user = db_user.scalars().first()
+    if not db_user:
+        raise HTTPException(status_code=400, detail="Неверный email или вы не зарегистрированы на этом сайте")
+    return {"message": "Авторизация прошла успешно", "user_id": db_user.id}
 
 @router.post("/users/")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):

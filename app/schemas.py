@@ -27,6 +27,12 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+class UserLogin(BaseModel):
+    email: str
+
+    class Config:
+        from_attributes = True
+
 class Payment(BaseModel):
     id: int
     wallet_id: int
