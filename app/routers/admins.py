@@ -55,6 +55,28 @@ async def create_user_by_admin(admin_id: int, user: UserCreate, db: AsyncSession
     await db.refresh(new_user)
     return new_user
 
+@router.patch("/admins/{admin_id}/users/{user_id}")
+async def update_user_by_admin(admin_id: int, user_id: int, user: UserCreate, db: AsyncSession = Depends(get_db)):
+    db_admin = await db.get(User, admin_id)
+    if not db_admin or db_admin.role != "admin":
+        raise HTTPException(status_code=404, detail="Этот пользователь не является администратором")
+    db_user = await db.get(User, user_id)
+    if db_user is None:
+        raise HTTPException(status_code=400, detail="Пользователь не найден")
+    if db_user.email != user.email:
+        result = await db.execute(select(User).filter(User.email == user.email))
+        existing_user = result.scalars().first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Пользователь с этим email уже существует!")
+    db_user.full_name = user.full_name
+    db_user.login = user.login
+    db_user.email = user.email
+    db_user.role = user.role
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user
+
 @router.delete("/admins/{admin_id}/users/{user_id}")
 async def delete_user_by_admin(admin_id: int, user_id: int, db: AsyncSession = Depends(get_db)):
     db_admin = await db.get(User, admin_id)
