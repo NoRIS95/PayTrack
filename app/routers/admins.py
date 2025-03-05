@@ -12,29 +12,13 @@ from app.schemas import User as UserSchema
 router = APIRouter()
 
 
-@router.post("/admins/")
-async def create_admin(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).filter(and_(User.email == user.email, User.role == "admin")))
-    db_user = result.scalars().first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Администратор с этим email уже зарегистрирован!")
-    new_admin = User(
-        full_name=user.full_name,
-        login=user.login,
-        email=user.email,
-        role="admin")
-    db.add(new_admin)
-    await db.commit()
-    await db.refresh(new_admin)
-    return new_admin
-
-
 @router.get("/admins/{admin_id}")
 async def get_admin_info(admin_id: int, db: AsyncSession = Depends(get_db)):
     db_admin = await db.get(User, admin_id)
     if not db_admin or db_admin.role != "admin":
         raise HTTPException(status_code=404, detail="Этот пользователь не является администратором")
-    return db_admin
+    return db_admin, {"message": "Данные администратора отображены успешно"}
+
 
 @router.post("/admins/{admin_id}/users")
 async def create_user_by_admin(admin_id: int, user: UserCreate, db: AsyncSession = Depends(get_db)):
@@ -53,7 +37,8 @@ async def create_user_by_admin(admin_id: int, user: UserCreate, db: AsyncSession
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    return new_user
+    return new_user, {"message": "Добавление нового пользователя администратором завершено успешно"}
+
 
 @router.patch("/admins/{admin_id}/users/{user_id}")
 async def update_user_by_admin(admin_id: int, user_id: int, user: UserCreate, db: AsyncSession = Depends(get_db)):
@@ -75,7 +60,8 @@ async def update_user_by_admin(admin_id: int, user_id: int, user: UserCreate, db
     db.add(db_user)
     await db.commit()
     await db.refresh(db_user)
-    return db_user
+    return db_user, {"message": "Данные пользователя успешно отредактированы"}
+
 
 @router.delete("/admins/{admin_id}/users/{user_id}")
 async def delete_user_by_admin(admin_id: int, user_id: int, db: AsyncSession = Depends(get_db)):
@@ -89,6 +75,7 @@ async def delete_user_by_admin(admin_id: int, user_id: int, db: AsyncSession = D
     await db.commit()
     return {"message": "Удаление пользователя произошло успешно"}
 
+
 @router.get("/admins/{admin_id}/users", response_model=List[UserSchema])
 async def get_all_users_with_wallets_and_balances(admin_id: int, db: AsyncSession = Depends(get_db)):
     db_admin = await db.get(User, admin_id)
@@ -100,4 +87,4 @@ async def get_all_users_with_wallets_and_balances(admin_id: int, db: AsyncSessio
     users = result_users.scalars().all()
     if not users:
         raise HTTPException(status_code=400, detail="Не удалось отобразить данные! Пользователи отсутствуют")
-    return users
+    return users, {"message": "Данные пользователей и их счетов успешно отображены"}

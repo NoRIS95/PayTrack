@@ -5,7 +5,9 @@ from app.database import get_db
 from app.models import User, Wallet, Payment
 from app.schemas import UserCreate
 
+
 router = APIRouter()
+
 
 @router.post("/users/")
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
@@ -20,14 +22,16 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    return new_user
+    return new_user, {"message": "Добавление нового пользователя завершено успешно"}
+
 
 @router.get("/users/{user_id}")
 async def get_user_info(user_id: int, db: AsyncSession = Depends(get_db)):
     db_user = await db.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="Этот пользователь не найден")
-    return db_user
+    return db_user, {"message": "Данные пользователя отображены успешно"}
+
 
 @router.post("/users/{user_id}/wallets_and_balances")
 async def create_wallet(user_id: int, db: AsyncSession = Depends(get_db)):
@@ -38,7 +42,8 @@ async def create_wallet(user_id: int, db: AsyncSession = Depends(get_db)):
     db.add(new_wallet)
     await db.commit()
     await db.refresh(new_wallet)
-    return new_wallet
+    return new_wallet, {"message": "Создание счёта завершено успешно"}
+
 
 @router.get("/users/{user_id}/wallets_and_balances")
 async def get_wallets_and_balances(user_id: int, db: AsyncSession = Depends(get_db)):
@@ -46,7 +51,8 @@ async def get_wallets_and_balances(user_id: int, db: AsyncSession = Depends(get_
     wallets = result.scalars().all()
     if not wallets :
         return {"message": "На данный момент у Вас отсутствуют счета"}
-    return wallets
+    return wallets, {"message": "Счета с балансами отображены успешно"}
+
 
 @router.get("/users/{user_id}/payments")
 async def get_payments(user_id: int, db: AsyncSession = Depends(get_db)):
@@ -54,4 +60,4 @@ async def get_payments(user_id: int, db: AsyncSession = Depends(get_db)):
     payments = result_payments.scalars().all()
     if not payments:
         return {"message": "На данный момент Вы не проводили никаких платежей"}
-    return payments
+    return payments, {"message": "Данные о совершённых платежах отображены успешно"}

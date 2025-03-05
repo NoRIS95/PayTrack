@@ -6,7 +6,9 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_db, SECRET_KEY
 from sqlalchemy import select
 
+
 router = APIRouter()
+
 
 @router.post("/webhook/payment")
 async def process_payment_webhook(payment: PaymentWebhook, db: AsyncSession = Depends(get_db)):
